@@ -7,7 +7,6 @@ pipeline {
 
     environment {
         SONARQUBE_ENV = 'sonarqube-server'
-        ARTIFACT_VERSION = "${BUILD_NUMBER}-SNAPSHOT"
     }
 
     stages {
@@ -59,8 +58,8 @@ pipeline {
                               -Durl=http://54.209.170.7:8081/repository/Nexus_customer_app/ \
                               -DgeneratePom=true \
                               -DretryFailedDeploymentCount=3 \
-                              -Dusername=$NEXUS_USER \
-                              -Dpassword=$NEXUS_PASS
+                              -Dusername=\${NEXUS_USER} \
+                              -Dpassword=\${NEXUS_PASS}
                         """
                     }
                 }
@@ -68,3 +67,4 @@ pipeline {
         }
     }
 }
+
