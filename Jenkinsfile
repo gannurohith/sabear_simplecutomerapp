@@ -7,6 +7,7 @@ pipeline {
 
     environment {
         SONARQUBE_ENV = 'sonarqube-server'
+        ARTIFACT_VERSION = "${BUILD_NUMBER}-SNAPSHOT"
     }
 
     stages {
@@ -35,6 +36,32 @@ pipeline {
                 sh 'mvn clean package -DskipTests'
             }
         }
+
+        stage('Upload to Nexus') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'Nexus-cred',
+                    usernameVariable: 'NEXUS_USER',
+                    passwordVariable: 'NEXUS_PASS'
+                )]) {
+                    sh '''
+                        mvn deploy:deploy-file \
+                          -DgroupId=com.javatpoint \
+                          -DartifactId=SimpleCustomerApp \
+                          -Dversion='${BUILD_NUMBER}-SNAPSHOT' \
+                          -Dpackaging=war \
+                          -Dfile=target/SimpleCustomerApp.war \
+                          -DrepositoryId=Nexus_customer_app \
+                          -Durl=http://54.209.170.7:8081/repository/Nexus_customer_app/ \
+                          -DgeneratePom=true \
+                          -DretryFailedDeploymentCount=3 \
+                          -Dusername=$NEXUS_USER \
+                          -Dpassword=$NEXUS_PASS
+                    '''
+                }
+            }
+        }
     }
 }
+
 
