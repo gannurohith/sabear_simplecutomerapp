@@ -7,6 +7,7 @@ pipeline {
 
     tools {
         maven 'MVN_HOME'
+        // SonarQube CLI tool is not explicitly needed here
     }
 
     stages {
@@ -28,6 +29,19 @@ pipeline {
         stage('Maven Compile') {
             steps {
                 sh 'mvn clean install'
+            }
+        }
+
+        stage('Nexus Upload') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'nexus_server', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                    sh """
+                        mvn deploy \
+                          -DskipTests \
+                          -Dnexus.username=$NEXUS_USER \
+                          -Dnexus.password=$NEXUS_PASS
+                    """
+                }
             }
         }
     }
