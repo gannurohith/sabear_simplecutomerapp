@@ -43,28 +43,24 @@ pipeline {
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
-                    script {
-                        def version = "${BUILD_NUMBER}-SNAPSHOT"
-                        def artifactFile = "target/SimpleCustomerApp-${version}.war"
-
-                        sh """
-                            mvn deploy:deploy-file \
-                              -DgroupId=com.javatpoint \
-                              -DartifactId=SimpleCustomerApp \
-                              -Dversion=${version} \
-                              -Dpackaging=war \
-                              -Dfile=${artifactFile} \
-                              -DrepositoryId=Nexus_customer_app \
-                              -Durl=http://54.209.170.7:8081/repository/Nexus_customer_app/ \
-                              -DgeneratePom=true \
-                              -DretryFailedDeploymentCount=3 \
-                              -Dusername=\${NEXUS_USER} \
-                              -Dpassword=\${NEXUS_PASS}
-                        """
-                    }
+                    sh '''
+                        mvn deploy:deploy-file \
+                          -DgroupId=com.javatpoint \
+                          -DartifactId=SimpleCustomerApp \
+                          -Dversion=1.0-SNAPSHOT \
+                          -Dpackaging=war \
+                          -Dfile=target/SimpleCustomerApp-1.0-SNAPSHOT.war \
+                          -DrepositoryId=Nexus_customer_app \
+                          -Durl=http://54.209.170.7:8081/repository/Nexus_customer_app/ \
+                          -DgeneratePom=true \
+                          -DretryFailedDeploymentCount=3 \
+                          -Dusername=$NEXUS_USER \
+                          -Dpassword=$NEXUS_PASS
+                    '''
                 }
             }
         }
     }
 }
+
 
