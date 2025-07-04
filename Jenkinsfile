@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     tools {
-        maven 'MVN_HOME' // Your configured Maven tool
+        maven 'MVN_HOME'
     }
 
     environment {
-        SONARQUBE_ENV = 'sonarqube-server' // Your SonarQube Jenkins config name
+        SONARQUBE_ENV = 'sonarqube-server'
     }
 
     stages {
@@ -29,5 +29,12 @@ pipeline {
                 }
             }
         }
+
+        stage('Maven Compile') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
     }
 }
+
