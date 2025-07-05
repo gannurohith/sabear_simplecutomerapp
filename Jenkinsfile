@@ -54,6 +54,7 @@ pipeline {
                           -Durl=http://3.89.115.90:8081/repository/Nexus_Integration/ \
                           -DgeneratePom=true \
                           -DuniqueVersion=false \
+                          -DupdateReleaseInfo=true \
                           -Dusername=$NEXUS_USER \
                           -Dpassword=$NEXUS_PASS
                     '''
@@ -62,6 +63,7 @@ pipeline {
         }
     }
 }
+
 
 
 
