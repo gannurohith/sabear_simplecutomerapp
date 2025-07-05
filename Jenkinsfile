@@ -19,7 +19,6 @@ pipeline {
     }
 
     tools {
-        jdk 'Java 21'
         maven 'MVN_HOME'
     }
 
