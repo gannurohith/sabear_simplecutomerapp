@@ -44,8 +44,24 @@ pipeline {
 
         stage('Deploy to Nexus') {
             steps {
-                // Using Maven deploy, assuming pom.xml + settings.xml already set up
-                sh 'mvn deploy -DskipTests'
+                withCredentials([usernamePassword(
+                    credentialsId: 'Nexus-credentials',
+                    usernameVariable: 'NEXUS_USER',
+                    passwordVariable: 'NEXUS_PASS'
+                )]) {
+                    writeFile file: 'settings-temp.xml', text: """
+                        <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">
+                          <servers>
+                            <server>
+                              <id>${env.NEXUS_REPOSITORY_ID}</id>
+                              <username>${env.NEXUS_USER}</username>
+                              <password>${env.NEXUS_PASS}</password>
+                            </server>
+                          </servers>
+                        </settings>
+                    """
+                    sh 'mvn deploy -DskipTests --settings settings-temp.xml'
+                }
             }
         }
 
