@@ -1,3 +1,6 @@
+
+
+
 pipeline {
     agent any
     environment {
@@ -14,10 +17,12 @@ pipeline {
         TOMCAT_CREDENTIALS_ID = 'tomcat-credentials'
         TOMCAT_APP_CONTEXT = 'SimpleCustomerApp'
     }
+
     tools {
         maven 'MVN_HOME'
         jdk 'jdk21'
     }
+
     stages {
         stage('Git Clone') {
             steps {
@@ -93,13 +98,25 @@ pipeline {
         always {
             echo 'Pipeline execution completed.'
         }
+
         success {
             echo ':white_check_mark: Pipeline succeeded.'
+            slackSend(
+                channel: '#jenkins-integration',
+                color: 'good',
+                message: "*✅ SUCCESS*: Build ${env.BUILD_NUMBER} for *${env.JOB_NAME}* succeeded!",
+                tokenCredentialId: 'Slack-Token'
+            )
         }
+
         failure {
             echo ':x: Build or Deployment Failed!'
+            slackSend(
+                channel: '#jenkins-integration',
+                color: 'danger',
+                message: "*❌ FAILURE*: Build ${env.BUILD_NUMBER} for *${env.JOB_NAME}* failed!",
+                tokenCredentialId: 'Slack-Token'
+            )
         }
     }
 }
-
-
