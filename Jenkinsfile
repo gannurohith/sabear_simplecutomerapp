@@ -4,9 +4,11 @@ pipeline {
         // SonarQube
         SONAR_QUBE_CREDENTIALS_ID = 'TToken1'
         SONAR_QUBE_NAME = 'sonarqube-server'
+
         // Nexus
         NEXUS_REPOSITORY_ID = 'Nexus_customer_app'
         NEXUS_URL = 'http://3.89.115.90:8081/repository/Nexus_customer_app/'
+
         // Tomcat
         TOMCAT_URL = 'http://34.202.205.194:8080/manager/text'
         TOMCAT_CREDENTIALS_ID = 'tomcat-credentials'
@@ -22,6 +24,7 @@ pipeline {
                 git branch: 'feature-1.1', url: 'https://github.com/gannurohith/sabear_simplecutomerapp.git'
             }
         }
+
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv(credentialsId: "${SONAR_QUBE_CREDENTIALS_ID}", installationName: "${SONAR_QUBE_NAME}") {
@@ -29,11 +32,13 @@ pipeline {
                 }
             }
         }
+
         stage('Maven Package') {
             steps {
                 sh 'mvn clean package -DskipTests'
             }
         }
+
         stage('Deploy to Nexus') {
             steps {
                 withCredentials([usernamePassword(
@@ -56,12 +61,16 @@ pipeline {
                 }
             }
         }
+
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    def warFile = findFiles(glob: 'target/*.war')[0]
-                    if (warFile) {
-                        sh "mv ${warFile.path} target/${env.TOMCAT_APP_CONTEXT}.war"
+                    def originalWar = 'target/SimpleCustomerApp-1.0.0-SNAPSHOT.war'
+                    def renamedWar = "target/${env.TOMCAT_APP_CONTEXT}.war"
+
+                    if (fileExists(originalWar)) {
+                        sh "cp ${originalWar} ${renamedWar}"
+
                         step([
                             $class: 'DeployPublisher',
                             adapters: [[
@@ -69,16 +78,17 @@ pipeline {
                                 credentialsId: "${TOMCAT_CREDENTIALS_ID}",
                                 url: "${TOMCAT_URL}"
                             ]],
-                            war: "target/${env.TOMCAT_APP_CONTEXT}.war",
+                            war: renamedWar,
                             contextPath: "${env.TOMCAT_APP_CONTEXT}"
                         ])
                     } else {
-                        error 'WAR file not found!'
+                        error "WAR file not found at ${originalWar}"
                     }
                 }
             }
         }
     }
+
     post {
         always {
             echo 'Pipeline execution completed.'
@@ -91,4 +101,5 @@ pipeline {
         }
     }
 }
+
 
