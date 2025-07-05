@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         // SonarQube
-        SONAR_SCANNER_HOME = tool 'SonarQube'
         SONAR_QUBE_CREDENTIALS_ID = 'TToken1'
         SONAR_QUBE_NAME = 'sonarqube-server'
 
