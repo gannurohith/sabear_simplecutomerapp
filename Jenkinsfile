@@ -44,8 +44,16 @@ pipeline {
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
                     sh '''
-                        mvn deploy \
-                          -DaltDeploymentRepository=Nexus_Integration::default::http://3.89.115.90:8081/repository/Nexus_Integration/ \
+                        mvn deploy:deploy-file \
+                          -DgroupId=com.javatpoint \
+                          -DartifactId=SimpleCustomerApp \
+                          -Dversion=1.0-SNAPSHOT \
+                          -Dpackaging=war \
+                          -Dfile=target/SimpleCustomerApp-1.0-SNAPSHOT.war \
+                          -DrepositoryId=Nexus_Integration \
+                          -Durl=http://3.89.115.90:8081/repository/Nexus_Integration/ \
+                          -DgeneratePom=true \
+                          -DuniqueVersion=false \
                           -Dusername=$NEXUS_USER \
                           -Dpassword=$NEXUS_PASS
                     '''
@@ -54,5 +62,6 @@ pipeline {
         }
     }
 }
+
 
 
