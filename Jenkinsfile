@@ -3,25 +3,28 @@ pipeline {
 
     environment {
         // SonarQube
-        SONARQUBE_ENV = 'sonarqube-server'
-        SONAR_TOKEN_ID = 'TToken1'
+        SONAR_SCANNER_HOME = tool 'SonarQube'
+        SONAR_QUBE_CREDENTIALS_ID = 'TToken1'
+        SONAR_QUBE_NAME = 'sonarqube-server'
 
         // Nexus
-        NEXUS_REPO_ID = 'Nexus_customer_app'
+        NEXUS_REPOSITORY_ID = 'Nexus_customer_app'
         NEXUS_URL = 'http://3.89.115.90:8081/repository/Nexus_customer_app/'
+        NEXUS_CREDENTIALS_ID = 'Nexus-credentials'
 
         // Tomcat
         TOMCAT_URL = 'http://34.202.205.194:8080/manager/text'
         TOMCAT_CREDENTIALS_ID = 'tomcat-credentials'
-        TOMCAT_APP_CONTEXT = 'simplecustomerapp'
+        TOMCAT_APP_CONTEXT = 'SimpleCustomerApp'
     }
 
     tools {
+        jdk 'Java 17'
         maven 'MVN_HOME'
     }
 
     stages {
-        stage('Clone Code') {
+        stage('Git Clone') {
             steps {
                 git branch: 'master', url: 'https://github.com/gannurohith/sabear_simplecutomerapp.git'
             }
@@ -29,19 +32,13 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv("${SONARQUBE_ENV}") {
-                    withCredentials([string(credentialsId: "${SONAR_TOKEN_ID}", variable: 'SONAR_TOKEN')]) {
-                        sh '''
-                            mvn clean verify sonar:sonar \
-                              -Dsonar.login=$SONAR_TOKEN \
-                              -DskipTests
-                        '''
-                    }
+                withSonarQubeEnv(credentialsId: "${SONAR_QUBE_CREDENTIALS_ID}", installationName: "${SONAR_QUBE_NAME}") {
+                    sh 'mvn clean verify sonar:sonar -Dsonar.login=$SONAR_TOKEN -DskipTests'
                 }
             }
         }
 
-        stage('Build WAR') {
+        stage('Maven Package') {
             steps {
                 sh 'mvn clean package -DskipTests'
             }
@@ -50,7 +47,7 @@ pipeline {
         stage('Deploy to Nexus') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'Nexus-credentials',
+                    credentialsId: "${NEXUS_CREDENTIALS_ID}",
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
@@ -58,9 +55,9 @@ pipeline {
                         mvn deploy:deploy-file \
                           -DgroupId=com.javatpoint \
                           -DartifactId=SimpleCustomerApp \
-                          -Dversion=1.0-SNAPSHOT \
+                          -Dversion=1.0.0-SNAPSHOT \
                           -Dpackaging=war \
-                          -Dfile=target/SimpleCustomerApp-1.0-SNAPSHOT.war \
+                          -Dfile=target/SimpleCustomerApp-1.0.0-SNAPSHOT.war \
                           -DrepositoryId=Nexus_customer_app \
                           -Durl=http://3.89.115.90:8081/repository/Nexus_customer_app/ \
                           -DgeneratePom=true \
@@ -77,14 +74,13 @@ pipeline {
                 script {
                     def warFile = findFiles(glob: 'target/*.war')[0]
                     if (warFile) {
-                        // Rename WAR to context
                         sh "mv ${warFile.path} target/${env.TOMCAT_APP_CONTEXT}.war"
                         step([
                             $class: 'DeployPublisher',
                             adapters: [[
                                 $class: 'Tomcat9xAdapter',
-                                credentialsId: "${env.TOMCAT_CREDENTIALS_ID}",
-                                url: "${env.TOMCAT_URL}"
+                                credentialsId: "${TOMCAT_CREDENTIALS_ID}",
+                                url: "${TOMCAT_URL}"
                             ]],
                             war: "target/${env.TOMCAT_APP_CONTEXT}.war",
                             contextPath: "${env.TOMCAT_APP_CONTEXT}"
@@ -99,13 +95,14 @@ pipeline {
 
     post {
         always {
-            echo "Pipeline execution completed with status: ${currentBuild.currentResult}"
+            echo 'Pipeline execution completed.'
         }
         success {
-            echo '✅ Build and Deployment Successful!'
+            echo '✅ Pipeline succeeded.'
         }
         failure {
             echo '❌ Build or Deployment Failed!'
         }
     }
 }
+
