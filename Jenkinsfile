@@ -54,8 +54,8 @@ pipeline {
                           <servers>
                             <server>
                               <id>${env.NEXUS_REPOSITORY_ID}</id>
-                              <username>${env.NEXUS_USER}</username>
-                              <password>${env.NEXUS_PASS}</password>
+                              <username>${NEXUS_USER}</username>
+                              <password>${NEXUS_PASS}</password>
                             </server>
                           </servers>
                         </settings>
