@@ -44,33 +44,19 @@ pipeline {
 
         stage('Deploy to Nexus') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'Nexus-credentials',
-                    usernameVariable: 'NEXUS_USER',
-                    passwordVariable: 'NEXUS_PASS'
-                )]) {
-                    writeFile file: 'settings-temp.xml', text: """
-                        <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">
-                          <servers>
-                            <server>
-                              <id>${env.NEXUS_REPOSITORY_ID}</id>
-                              <username>${NEXUS_USER}</username>
-                              <password>${NEXUS_PASS}</password>
-                            </server>
-                          </servers>
-                        </settings>
-                    """
-                    sh 'mvn deploy -DskipTests --settings settings-temp.xml'
-                }
+                sh 'mvn deploy -DskipTests'
             }
         }
 
         stage('Deploy to Tomcat') {
             steps {
                 script {
-                    def warFile = findFiles(glob: 'target/*.war')[0]
-                    if (warFile) {
-                        sh "mv ${warFile.path} target/${env.TOMCAT_APP_CONTEXT}.war"
+                    def originalWar = 'target/SimpleCustomerApp-1.0.0-SNAPSHOT.war'
+                    def renamedWar = "target/${env.TOMCAT_APP_CONTEXT}.war"
+
+                    if (fileExists(originalWar)) {
+                        sh "cp ${originalWar} ${renamedWar}"
+
                         step([
                             $class: 'DeployPublisher',
                             adapters: [[
@@ -78,11 +64,11 @@ pipeline {
                                 credentialsId: "${TOMCAT_CREDENTIALS_ID}",
                                 url: "${TOMCAT_URL}"
                             ]],
-                            war: "target/${env.TOMCAT_APP_CONTEXT}.war",
+                            war: renamedWar,
                             contextPath: "${env.TOMCAT_APP_CONTEXT}"
                         ])
                     } else {
-                        error 'WAR file not found!'
+                        error "WAR file not found at ${originalWar}"
                     }
                 }
             }
@@ -101,3 +87,4 @@ pipeline {
         }
     }
 }
+
