@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'MVN_HOME'
+        maven 'MVN_HOME'  // Make sure this matches Jenkins tool name
     }
 
     environment {
@@ -22,7 +22,7 @@ pipeline {
                     withCredentials([string(credentialsId: 'TToken1', variable: 'SONAR_TOKEN')]) {
                         sh '''
                             mvn clean verify sonar:sonar \
-                              -Dsonar.login=$SONAR_TOKEN \
+                              -Dsonar.token=$SONAR_TOKEN \
                               -DskipTests
                         '''
                     }
@@ -39,30 +39,22 @@ pipeline {
         stage('Upload to Nexus') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'Nexus-credentials',
+                    credentialsId: 'Nexus-cred',
                     usernameVariable: 'NEXUS_USER',
                     passwordVariable: 'NEXUS_PASS'
                 )]) {
                     sh '''
-                        mvn deploy:deploy-file \
-                          -DgroupId=com.javatpoint \
-                          -DartifactId=SimpleCustomerApp \
-                          -Dversion=1.0-SNAPSHOT \
-                          -Dpackaging=war \
-                          -Dfile=target/SimpleCustomerApp-1.0-SNAPSHOT.war \
-                          -DrepositoryId=Nexus_Integration \
-                          -Durl=http://3.89.115.90:8081/repository/Nexus_Integration/ \
-                          -DgeneratePom=true \
-                          -DuniqueVersion=false \
-                          -DupdateReleaseInfo=true \
+                        mvn deploy \
                           -Dusername=$NEXUS_USER \
-                          -Dpassword=$NEXUS_PASS
+                          -Dpassword=$NEXUS_PASS \
+                          -DskipTests
                     '''
                 }
             }
         }
     }
 }
+
 
 
 
