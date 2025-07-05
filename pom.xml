@@ -9,17 +9,18 @@
     <packaging>war</packaging>
     <name>SimpleCustomerApp</name>
     <url>http://maven.apache.org</url>
+
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
+
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>
         <testSourceDirectory>src/test/java</testSourceDirectory>
         <plugins>
-            <!-- Maven Compiler Plugin (optional explicit declaration if needed) -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -29,7 +30,6 @@
                     <target>${maven.compiler.target}</target>
                 </configuration>
             </plugin>
-            <!-- Maven WAR Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
@@ -38,7 +38,6 @@
                     <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
             </plugin>
-            <!-- Maven Surefire Plugin for running unit tests -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -46,13 +45,11 @@
             </plugin>
         </plugins>
     </build>
+
     <distributionManagement>
-    <repository>
-      <id>Simplecustomerapp</id>
-      <url>http://35.175.132.66:8081/repository/Simplecustomerapp/</url>
-    </repository>
-  </distributionManagement>
+        <snapshotRepository>
+            <id>Nexus_customer_app</id>
+            <url>http://3.89.115.90:8081/repository/Nexus_customer_app/</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>
-
-
-
